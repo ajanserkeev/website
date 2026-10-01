@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasWebpImages;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
@@ -17,9 +19,9 @@ use Spatie\Sluggable\SlugOptions;
  */
 #[Guarded(['id'])]
 #[Hidden(['contact_name', 'phone', 'whatsapp', 'email', 'notes', 'contract_signed_at'])]
-class Operator extends Model
+class Operator extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, SoftDeletes;
+    use HasFactory, HasSlug, HasWebpImages, SoftDeletes;
 
     protected function casts(): array
     {
@@ -32,9 +34,16 @@ class Operator extends Model
         ];
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('logo')
+            ->acceptsMimeTypes(self::IMAGE_MIME_TYPES)
+            ->singleFile();
+    }
+
     public function getSlugOptions(): SlugOptions
     {
-        return SlugOptions::create()->generateSlugsFrom('name')->saveSlugsTo('slug')->doNotGenerateSlugsOnUpdate();
+        return SlugOptions::create()->generateSlugsFrom('name')->saveSlugsTo('slug')->doNotGenerateSlugsOnUpdate()->preventOverwrite();
     }
 
     public function guides(): HasMany

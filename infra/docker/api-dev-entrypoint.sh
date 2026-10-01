@@ -7,6 +7,9 @@ if [ ! -f .env ]; then
   cp .env.example .env
   php artisan key:generate --no-interaction
 fi
-php artisan migrate --force --no-interaction
+if [ -z "$SKIP_MIGRATIONS" ]; then
+  php artisan migrate --force --no-interaction
+  [ -L public/storage ] || php artisan storage:link --no-interaction
+fi
 
 exec "$@"

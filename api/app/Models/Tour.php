@@ -6,6 +6,7 @@ use App\Enums\DepartureStatus;
 use App\Enums\TourItemKind;
 use App\Enums\TourStatus;
 use App\Enums\TourType;
+use App\Models\Concerns\HasWebpImages;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,13 +17,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 #[Guarded(['id'])]
-class Tour extends Model
+class Tour extends Model implements HasMedia
 {
-    use HasFactory, HasSlug, SoftDeletes;
+    use HasFactory, HasSlug, HasWebpImages, SoftDeletes;
 
     protected function casts(): array
     {
@@ -39,9 +41,15 @@ class Tour extends Model
         ];
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('gallery')
+            ->acceptsMimeTypes(self::IMAGE_MIME_TYPES);
+    }
+
     public function getSlugOptions(): SlugOptions
     {
-        return SlugOptions::create()->generateSlugsFrom('title')->saveSlugsTo('slug')->doNotGenerateSlugsOnUpdate();
+        return SlugOptions::create()->generateSlugsFrom('title')->saveSlugsTo('slug')->doNotGenerateSlugsOnUpdate()->preventOverwrite();
     }
 
     #[Scope]

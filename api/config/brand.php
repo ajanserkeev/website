@@ -12,4 +12,10 @@ return [
 
     'currency' => 'USD',
 
+    // Public Next.js site, for "Open on site" links in the admin.
+    // Folder with demo photos for DemoCatalogSeeder (web/public/demo mounted in Docker); empty in CI.
+    'demo_photos_path' => env('DEMO_PHOTOS_PATH'),
+
+    'frontend_url' => rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/'),
+
 ];

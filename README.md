@@ -26,6 +26,7 @@ docker compose -f infra/docker-compose.yml up
 | http://localhost:8000/admin | админка (api) |
 | http://localhost:8025 | Mailpit, входящие письма |
 | http://localhost:8000/api/v1/health | проверка API и базы |
+| `worker` | Horizon: фото в WebP, позже письма и Telegram |
 | localhost:5432 | PostgreSQL 17 (tunduk / secret), базы `tunduk` и `tunduk_test` |
 
 Первый запуск сам ставит зависимости, создаёт `api/.env` и прогоняет миграции. Пользователь для админки:
@@ -34,11 +35,13 @@ docker compose -f infra/docker-compose.yml up
 docker compose -f infra/docker-compose.yml exec api php artisan make:filament-user
 ```
 
-Демо-данные в базе (тот же каталог, что на сайте; админ `admin@example.com` / `password`):
+Демо-данные в базе (тот же каталог, что на сайте, с фото; админ `admin@example.com` / `password`):
 
 ```bash
 docker compose -f infra/docker-compose.yml exec api php artisan migrate:fresh --seed
 ```
+
+Тесты работают только с базой `tunduk_test` и откажутся запускаться на любой другой.
 
 Тесты и стиль:
 

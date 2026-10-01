@@ -2,8 +2,11 @@
 
 namespace App\Enums;
 
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasLabel;
+
 /** A group departure date. 'guaranteed' runs regardless of group size. */
-enum DepartureStatus: string
+enum DepartureStatus: string implements HasColor, HasLabel
 {
     case Open = 'open';
     case Guaranteed = 'guaranteed';
@@ -17,6 +20,27 @@ enum DepartureStatus: string
             self::Guaranteed => 'Guaranteed',
             self::Full => 'Full',
             self::Cancelled => 'Cancelled',
+        };
+    }
+
+    /** Russian label for the admin panel. */
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Open => 'Набор открыт',
+            self::Guaranteed => 'Гарантирован',
+            self::Full => 'Мест нет',
+            self::Cancelled => 'Отменён',
+        };
+    }
+
+    public function getColor(): string
+    {
+        return match ($this) {
+            self::Open => 'info',
+            self::Guaranteed => 'success',
+            self::Full => 'warning',
+            self::Cancelled => 'danger',
         };
     }
 }
