@@ -57,7 +57,9 @@ services:
   web:
     image: node:24-alpine
     working_dir: /app
-    command: sh -c "npm ci && npm run dev -- -H 0.0.0.0"
+    # File events don't cross a Windows bind mount, so the container uses webpack with polling.
+    # For the fastest reload run `npm run dev` in web/ on the host instead (README).
+    command: sh -c "npm ci && npm run dev -- -H 0.0.0.0 --webpack"
     volumes:
       - ../web:/app
       - web_node_modules:/app/node_modules
