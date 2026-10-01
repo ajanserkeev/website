@@ -48,7 +48,7 @@ export function BookingWidget(props: Props) {
   const hasPrivate = props.privatePrices.length > 0;
   const firstOpen = props.departures.find((d) => d.seatsLeft > 0);
 
-  const [mode, setMode] = useState<"group" | "private">(hasGroup ? "group" : "private");
+  const [mode, setMode] = useState<"group" | "private">(hasGroup || !hasPrivate ? "group" : "private");
   const [departureId, setDepartureId] = useState(firstOpen?.id ?? "");
   const [travelers, setTravelers] = useState(Math.max(2, props.groupSizeMin));
   const [privateDate, setPrivateDate] = useState("");
@@ -67,10 +67,8 @@ export function BookingWidget(props: Props) {
 
   const unitCents = mode === "group" ? (departure?.priceCents ?? null) : privatePriceFor(props.privatePrices, people);
   const totalCents = unitCents === null ? null : unitCents * people;
-  const fromCents = Math.min(
-    ...props.departures.map((d) => d.priceCents),
-    ...props.privatePrices.map((p) => p.pricePerPersonCents),
-  );
+  const prices = [...props.departures.map((d) => d.priceCents), ...props.privatePrices.map((p) => p.pricePerPersonCents)];
+  const fromCents = prices.length ? Math.min(...prices) : null;
 
   const dates =
     mode === "group" ? (departure ? formatRange(departure.startsOn, departure.endsOn) : "") : privateDate || "flexible dates";
@@ -107,9 +105,13 @@ export function BookingWidget(props: Props) {
           </div>
         )}
 
-        <p className="text-sm text-ink-muted">
-          from <Money cents={fromCents} className="font-display text-2xl font-bold text-ink tabular" /> / person
-        </p>
+        {fromCents !== null ? (
+          <p className="text-sm text-ink-muted">
+            from <Money cents={fromCents} className="font-display text-2xl font-bold text-ink tabular" /> / person
+          </p>
+        ) : (
+          <p className="text-sm text-ink-muted">Dates and prices on request: ask us and we&apos;ll check with the operator.</p>
+        )}
 
         {mode === "group" ? (
           <fieldset>

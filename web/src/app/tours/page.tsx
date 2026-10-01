@@ -4,29 +4,23 @@ import { Lock } from "lucide-react";
 import { ActiveFilters, CatalogFilters, SortSelect } from "@/components/catalog/catalog-filters";
 import { TourCard } from "@/components/tour/tour-card";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  activityName,
-  difficultyLabels,
-  listActivities,
-  listRegions,
-  listTours,
-  regionName,
-  toCard,
-  upcomingMonths,
-} from "@/lib/catalog";
+import { difficultyLabels, listActivities, listRegions, listTours, upcomingMonths } from "@/lib/catalog";
 import { durationLabels, loadCatalogParams, type CatalogFilters as Filters } from "@/lib/search-params";
+import type { Taxonomy } from "@/lib/types";
 
-function headline(f: Filters) {
-  const what = f.activity ? `${activityName(f.activity)} tours` : "Tours";
-  const where = f.region ? ` in ${regionName(f.region)}` : " in Kyrgyzstan";
+const nameOf = (list: Taxonomy[], slug: string) => list.find((x) => x.slug === slug)?.name ?? slug;
+
+function headline(f: Filters, activities: Taxonomy[], regions: Taxonomy[]) {
+  const what = f.activity ? `${nameOf(activities, f.activity)} tours` : "Tours";
+  const where = f.region ? ` in ${nameOf(regions, f.region)}` : " in Kyrgyzstan";
   return `${what}${where}`;
 }
 
 export async function generateMetadata(props: PageProps<"/tours">): Promise<Metadata> {
   const filters = await loadCatalogParams(props.searchParams);
-  const results = await listTours(filters);
+  const [results, activities, regions] = await Promise.all([listTours(filters), listActivities(), listRegions()]);
   return {
-    title: headline(filters),
+    title: headline(filters, activities, regions),
     description: "Multi-day treks, horse riding, yurt stays and day trips from verified local operators.",
     // Empty filter combinations must not be indexed (launch document, section 09).
     robots: results.length ? undefined : { index: false },
@@ -39,8 +33,8 @@ export default async function ToursPage(props: PageProps<"/tours">) {
   const months = upcomingMonths();
 
   const activeLabels = [
-    filters.activity && { key: "activity" as const, label: activityName(filters.activity) },
-    filters.region && { key: "region" as const, label: regionName(filters.region) },
+    filters.activity && { key: "activity" as const, label: nameOf(activityList, filters.activity) },
+    filters.region && { key: "region" as const, label: nameOf(regionList, filters.region) },
     filters.month && { key: "month" as const, label: months.find((m) => m.value === filters.month)?.label ?? filters.month },
     filters.duration && { key: "duration" as const, label: durationLabels[filters.duration] },
     filters.difficulty && { key: "difficulty" as const, label: difficultyLabels[filters.difficulty] },
@@ -57,7 +51,7 @@ export default async function ToursPage(props: PageProps<"/tours">) {
       </nav>
       <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{headline(filters)}</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{headline(filters, activityList, regionList)}</h1>
           <p className="mt-1 text-ink-muted">
             {results.length} {results.length === 1 ? "tour" : "tours"} from verified local operators
           </p>
@@ -81,7 +75,7 @@ export default async function ToursPage(props: PageProps<"/tours">) {
           {results.length ? (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {results.map((tour, i) => (
-                <TourCard key={tour.slug} tour={toCard(tour)} priority={i < 3} />
+                <TourCard key={tour.slug} tour={tour} priority={i < 3} />
               ))}
             </div>
           ) : (

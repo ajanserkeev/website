@@ -32,6 +32,7 @@
         <server name="DB_URL" value="" force="true"/>
         <server name="MAIL_MAILER" value="array" force="true"/>
         <server name="DEMO_PHOTOS_PATH" value="" force="true"/>
+        <server name="FRONTEND_REVALIDATE_SECRET" value="" force="true"/>
         <server name="QUEUE_CONNECTION" value="sync" force="true"/>
         <server name="SESSION_DRIVER" value="array" force="true"/>
         <env name="PULSE_ENABLED" value="false"/>

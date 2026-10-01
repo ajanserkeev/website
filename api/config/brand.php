@@ -18,4 +18,9 @@ return [
 
     'frontend_url' => rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/'),
 
+    // Where Laravel reaches the Next.js server to clear its catalog cache (inside Docker: http://web:3000),
+    // and the shared secret (web REVALIDATE_SECRET). Empty secret: revalidation is off.
+    'frontend_internal_url' => rtrim((string) env('FRONTEND_INTERNAL_URL', env('FRONTEND_URL', 'http://localhost:3000')), '/'),
+    'frontend_revalidate_secret' => env('FRONTEND_REVALIDATE_SECRET'),
+
 ];

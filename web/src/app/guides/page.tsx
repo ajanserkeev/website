@@ -27,14 +27,16 @@ export default async function GuidesPage() {
             href={`/guides/${g.slug}`}
             className="group overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-raised"
           >
-            <div className="relative aspect-[16/10] overflow-hidden">
-              <Image
-                src={g.hero.src}
-                alt={g.hero.alt}
-                fill
-                sizes="(min-width: 1024px) 33vw, 100vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+            <div className="relative aspect-[16/10] overflow-hidden bg-secondary">
+              {g.hero && (
+                <Image
+                  src={g.hero.src}
+                  alt={g.hero.alt}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, 100vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              )}
             </div>
             <div className="p-5">
               <p className="text-xs text-ink-muted">{g.readingMinutes} min read</p>
