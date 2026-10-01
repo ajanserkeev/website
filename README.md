@@ -34,6 +34,12 @@ docker compose -f infra/docker-compose.yml up
 docker compose -f infra/docker-compose.yml exec api php artisan make:filament-user
 ```
 
+Демо-данные в базе (тот же каталог, что на сайте; админ `admin@example.com` / `password`):
+
+```bash
+docker compose -f infra/docker-compose.yml exec api php artisan migrate:fresh --seed
+```
+
 Тесты и стиль:
 
 ```bash
@@ -59,7 +65,8 @@ npm run dev
 Пока нет API каталога (шаг 4.5), сайт работает на демо-данных: `web/src/data/demo/` и фото в `web/public/demo/`.
 Фирмы, отзывы, рейтинги, цены и даты там вымышлены, сверху сайта висит плашка «sample data»
 (`NEXT_PUBLIC_DEMO_CONTENT=false` её убирает). Все страницы читают данные только через `web/src/lib/catalog.ts`:
-при переходе на API меняются функции в этом файле, а не страницы. Перед запуском демо-фото заменяются реальными
+при переходе на API меняются функции в этом файле, а не страницы. Сидер Laravel читает тот же каталог из
+`api/database/seeders/data/demo-catalog.json` (экспорт из `web/src/data/demo`). Перед запуском демо-фото заменяются реальными
 фото фирм с письменным разрешением.
 
 ## Правила работы
