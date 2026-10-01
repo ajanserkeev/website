@@ -13,5 +13,9 @@ WORKDIR /var/www/html
 
 FROM base AS dev
 ENV COMPOSER_CACHE_DIR=/tmp/composer-cache
+COPY docker/php-dev.ini /usr/local/etc/php/conf.d/zz-dev.ini
+COPY docker/api-dev-entrypoint.sh /usr/local/bin/api-dev-entrypoint
+RUN chmod +x /usr/local/bin/api-dev-entrypoint
 EXPOSE 8000
+ENTRYPOINT ["api-dev-entrypoint"]
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

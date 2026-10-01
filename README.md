@@ -8,7 +8,7 @@
 | Папка | Что внутри |
 |---|---|
 | `web/` | Сайт для туристов: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui |
-| `api/` | Laravel: API v1, админка Filament, очереди *(появится в следующем шаге каркаса)* |
+| `api/` | Laravel 13 (PHP 8.4): API v1, админка Filament, очереди Horizon |
 | `infra/` | Docker Compose для локальной разработки, Dockerfile-ы |
 | `docs/` | План и документация |
 
@@ -25,7 +25,24 @@ docker compose -f infra/docker-compose.yml up
 | http://localhost:3000 | сайт (web) |
 | http://localhost:8000/admin | админка (api) |
 | http://localhost:8025 | Mailpit, входящие письма |
-| localhost:5432 | PostgreSQL 17 (tunduk / secret) |
+| http://localhost:8000/api/v1/health | проверка API и базы |
+| localhost:5432 | PostgreSQL 17 (tunduk / secret), базы `tunduk` и `tunduk_test` |
+
+Первый запуск сам ставит зависимости, создаёт `api/.env` и прогоняет миграции. Пользователь для админки:
+
+```bash
+docker compose -f infra/docker-compose.yml exec api php artisan make:filament-user
+```
+
+Тесты и стиль:
+
+```bash
+docker compose -f infra/docker-compose.yml exec api ./vendor/bin/pest
+docker compose -f infra/docker-compose.yml exec api ./vendor/bin/pint
+```
+
+`api/vendor` и `web/node_modules` внутри контейнеров лежат в Docker-томах: так Laravel отвечает за 0,2 с вместо 5–10 с
+на Windows. После изменения `composer.json` выполните `composer install` внутри контейнера `api`.
 
 Только сайт, без Docker:
 

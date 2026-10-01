@@ -10,7 +10,9 @@ services:
       POSTGRES_USER: tunduk
       POSTGRES_PASSWORD: secret
     ports: ["5432:5432"]
-    volumes: [pg_data:/var/lib/postgresql/data]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tunduk -d tunduk"]
       interval: 5s
@@ -32,7 +34,10 @@ services:
       context: .
       dockerfile: docker/api.Dockerfile
       target: dev
-    volumes: [../api:/var/www/html]
+    volumes:
+      - ../api:/var/www/html
+      # vendor/ lives in a volume: reading ~10k files over the host bind mount is very slow on Windows
+      - api_vendor:/var/www/html/vendor
     ports: ["8000:8000"]
     environment:
       DB_CONNECTION: pgsql
@@ -64,4 +69,5 @@ services:
 
 volumes:
   pg_data: {}
+  api_vendor: {}
   web_node_modules: {}
