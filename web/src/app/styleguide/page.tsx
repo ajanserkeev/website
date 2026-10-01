@@ -5,7 +5,7 @@ import { PriceLedger } from "@/components/tour/price-ledger";
 import { TourBadge } from "@/components/tour/tour-badge";
 import { TourCard } from "@/components/tour/tour-card";
 import { Button } from "@/components/ui/button";
-import { getTour, toCard } from "@/lib/catalog";
+import { listTours } from "@/lib/catalog";
 
 export const metadata: Metadata = { title: "Styleguide", robots: { index: false } };
 
@@ -29,7 +29,7 @@ const swatch: Record<string, string> = {
 
 /** Design tokens and base components (step 2.2). */
 export default async function StyleguidePage() {
-  const tour = await getTour("song-kul-horse-trek-yurt-stay");
+  const [tour] = await listTours();
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-10 sm:px-6">
       <header className="flex items-center gap-4">
@@ -100,7 +100,7 @@ export default async function StyleguidePage() {
       <section className="grid items-start gap-8 lg:grid-cols-2">
         <div>
           <h2 className="mb-4 font-display text-xl font-bold">Tour card</h2>
-          {tour && <TourCard tour={toCard(tour)} />}
+          {tour && <TourCard tour={tour} />}
         </div>
         <div>
           <h2 className="mb-4 font-display text-xl font-bold">Price ledger</h2>

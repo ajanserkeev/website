@@ -22,6 +22,7 @@ import type { Faq, Operator, Review, Tour, TourDay } from "@/lib/types";
 const monthName = (m: number) => new Date(Date.UTC(2000, m - 1, 1)).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
 
 export function Gallery({ images }: { images: Tour["images"] }) {
+  if (!images.length) return null;
   const [hero, ...rest] = images;
   const thumbs = rest.slice(0, 4);
   return (
@@ -41,7 +42,7 @@ export function Gallery({ images }: { images: Tour["images"] }) {
 export function Facts({ tour }: { tour: Tour }) {
   const facts = [
     { Icon: CalendarDays, label: "Duration", value: tour.durationDays === 1 ? "1 day" : `${tour.durationDays} days`, note: tour.durationDays > 1 ? `${tour.durationDays - 1} nights` : "Day trip" },
-    { Icon: Gauge, label: "Difficulty", value: ["Easy", "Easy", "Moderate", "Challenging", "Very challenging"][tour.difficulty - 1], note: tour.difficultyNote },
+    { Icon: Gauge, label: "Difficulty", value: ["Easy", "Easy", "Moderate", "Challenging", "Very challenging"][tour.difficulty - 1], note: tour.difficultyNote ?? "" },
     { Icon: Users, label: "Group size", value: `${tour.groupSizeMin}–${tour.groupSizeMax} people`, note: tour.minAge ? `Ages ${tour.minAge}+` : "All ages" },
     { Icon: Languages, label: "Guide", value: tour.guideLanguages.slice(0, 2).join(", "), note: tour.guideLanguages.length > 2 ? `+${tour.guideLanguages.length - 2} more` : "Languages" },
     ...(tour.maxAltitudeM
@@ -172,13 +173,19 @@ export function OperatorCard({ operator }: { operator: Operator }) {
               <BadgeCheck className="size-5 text-meadow" aria-label="Verified operator" />
             </p>
             <p className="text-sm text-ink-muted">
-              {operator.baseCity} · since {operator.foundedYear}
+              {[operator.baseCity, operator.foundedYear && `since ${operator.foundedYear}`].filter(Boolean).join(" · ")}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           {operator.ratings.map((r) => (
-            <div key={r.source} className="rounded-lg bg-snow px-3 py-1.5 text-center">
+            <a
+              key={r.source}
+              href={r.url ?? undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-snow px-3 py-1.5 text-center hover:bg-secondary"
+            >
               <span className="flex items-center justify-center gap-1 font-bold text-ink">
                 <Star className="size-3.5 fill-sun text-sun" aria-hidden="true" />
                 {r.rating.toFixed(1)}
@@ -186,17 +193,17 @@ export function OperatorCard({ operator }: { operator: Operator }) {
               <span className="block text-xs text-ink-muted">
                 {r.source} ({r.reviews})
               </span>
-            </div>
+            </a>
           ))}
         </div>
       </div>
-      <p className="mt-4 text-ink-muted">{operator.description}</p>
+      {operator.description && <p className="mt-4 text-ink-muted">{operator.description}</p>}
       <ul className="mt-4 space-y-1.5 text-sm">
         {operator.guides.map((g) => (
           <li key={g.name} className="text-ink">
             <span className="font-semibold">{g.name}</span>{" "}
             <span className="text-ink-muted">
-              ({g.languages.join(", ")}) · {g.note}
+              ({g.languages.join(", ")}){g.note && ` · ${g.note}`}
             </span>
           </li>
         ))}
@@ -240,7 +247,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
         <li key={r.id} className="py-4 first:pt-0 last:pb-0">
           <div className="flex items-center justify-between gap-3">
             <p className="font-semibold text-ink">
-              {r.author} <span className="font-normal text-ink-muted">· {r.country}</span>
+              {r.author} {r.country && <span className="font-normal text-ink-muted">· {r.country}</span>}
             </p>
             <span className="flex gap-0.5" aria-label={`${r.rating} out of 5`}>
               {Array.from({ length: 5 }, (_, i) => (
@@ -249,8 +256,8 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
             </span>
           </div>
           <p className="text-sm text-ink-muted">
-            Travelled{" "}
-            {new Date(`${r.tripMonth}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" })}
+            {r.tripMonth &&
+              `Travelled ${new Date(`${r.tripMonth}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" })}`}
             {r.verifiedBooking && <span className="text-meadow"> · Verified booking</span>}
           </p>
           <p className="mt-2 text-ink">{r.body}</p>

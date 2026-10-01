@@ -10,30 +10,19 @@ import { RegionGrid } from "@/components/region-grid";
 import { SectionHeading } from "@/components/section-heading";
 import { buttonVariants } from "@/components/ui/button";
 import { brand, whatsappUrl } from "@/lib/brand";
-import {
-  listActivities,
-  listCollections,
-  listFeaturedReviews,
-  listRegions,
-  toCard,
-  upcomingMonths,
-} from "@/lib/catalog";
-import { serializeCatalog } from "@/lib/search-params";
+import { listActivities, listCollections, listFeaturedReviews, listRegions, upcomingMonths } from "@/lib/catalog";
 
 export default async function Home() {
   const [activityList, collectionList, regionList, reviews] = await Promise.all([
     listActivities(),
-    listCollections(),
+    listCollections({ featured: true }),
     listRegions(),
     listFeaturedReviews(),
   ]);
 
-  const tabs = collectionList.map((c) => ({
-    slug: c.slug,
-    title: c.title,
-    href: `/tours${serializeCatalog(c.filter)}`,
-    tours: c.tours.map(toCard),
-  }));
+  const tabs = collectionList
+    .filter((c) => c.tours.length > 0)
+    .map((c) => ({ slug: c.slug, title: c.title, href: `/collections/${c.slug}`, tours: c.tours }));
 
   return (
     <>
@@ -141,12 +130,15 @@ export default async function Home() {
                 <p className="mt-3 flex-1 text-ink">“{r.body}”</p>
                 <div className="mt-4 border-t border-line pt-3 text-sm">
                   <p className="font-semibold text-ink">
-                    {r.author}, {r.country}
+                    {r.author}
+                    {r.country && `, ${r.country}`}
                   </p>
-                  <Link href={`/tours/${r.tourSlug}`} className="text-ink-muted hover:text-lake">
-                    {r.tourTitle}
-                    {r.verifiedBooking && <span className="ml-1 text-meadow">· Verified booking</span>}
-                  </Link>
+                  {r.tour && (
+                    <Link href={`/tours/${r.tour.slug}`} className="text-ink-muted hover:text-lake">
+                      {r.tour.title}
+                      {r.verifiedBooking && <span className="ml-1 text-meadow">· Verified booking</span>}
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}

@@ -4,7 +4,9 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { DemoNotice } from "@/components/layout/demo-notice";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { RatesProvider } from "@/components/rates-provider";
 import { brand } from "@/lib/brand";
+import { getCurrencyRates } from "@/lib/catalog";
 import "./globals.css";
 
 const unbounded = Unbounded({
@@ -38,15 +40,18 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const rates = await getCurrencyRates();
   return (
     <html lang="en" className={`${unbounded.variable} ${workSans.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <NuqsAdapter>
-          <DemoNotice />
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <RatesProvider rates={rates}>
+            <DemoNotice />
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </RatesProvider>
         </NuqsAdapter>
       </body>
     </html>

@@ -52,6 +52,8 @@ services:
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
+      FRONTEND_INTERNAL_URL: http://web:3000
+      FRONTEND_REVALIDATE_SECRET: local-revalidate-secret
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_started }
@@ -77,6 +79,8 @@ services:
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
+      FRONTEND_INTERNAL_URL: http://web:3000
+      FRONTEND_REVALIDATE_SECRET: local-revalidate-secret
       SKIP_MIGRATIONS: "1"
     depends_on: [api]
 
@@ -92,6 +96,7 @@ services:
     ports: ["3000:3000"]
     environment:
       API_URL: http://api:8000
+      REVALIDATE_SECRET: local-revalidate-secret
       WATCHPACK_POLLING: "true"
     depends_on: [api]
 

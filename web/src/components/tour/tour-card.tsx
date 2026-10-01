@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Clock } from "lucide-react";
+import { TundukMark } from "@/components/brand/tunduk-mark";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Money } from "@/components/money";
 import type { TourCardData } from "@/lib/catalog";
@@ -12,14 +13,20 @@ export function TourCard({ tour, priority = false }: { tour: TourCardData; prior
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-raised">
       <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-        <Image
-          src={tour.image.src}
-          alt={tour.image.alt}
-          fill
-          sizes="(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw"
-          preload={priority}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        {tour.image ? (
+          <Image
+            src={tour.image.src}
+            alt={tour.image.alt}
+            fill
+            sizes="(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw"
+            preload={priority}
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center" aria-hidden="true">
+            <TundukMark className="size-16 text-line-strong" />
+          </div>
+        )}
         {badge && <TourBadge badge={badge} className="absolute top-3 left-3" />}
         <FavoriteButton slug={tour.slug} title={tour.title} className="absolute top-3 right-3 z-10" />
       </div>
@@ -38,14 +45,20 @@ export function TourCard({ tour, priority = false }: { tour: TourCardData; prior
         </h3>
         <Rating rating={tour.rating} />
         <div className="mt-auto flex items-end justify-between gap-2 border-t border-line pt-3">
-          <p className="text-sm text-ink-muted">
-            from{" "}
-            <Money cents={tour.priceFromCents} className="text-xl font-bold text-ink tabular" />
-            <span className="text-xs"> / person</span>
-          </p>
-          <span className="rounded-md bg-meadow-50 px-2 py-1 text-xs font-semibold text-meadow">
-            Pay <Money cents={tour.depositFromCents} /> to book
-          </span>
+          {tour.priceFromCents !== null ? (
+            <p className="text-sm text-ink-muted">
+              from{" "}
+              <Money cents={tour.priceFromCents} className="text-xl font-bold text-ink tabular" />
+              <span className="text-xs"> / person</span>
+            </p>
+          ) : (
+            <p className="text-sm text-ink-muted">Dates on request</p>
+          )}
+          {tour.depositFromCents !== null && (
+            <span className="rounded-md bg-meadow-50 px-2 py-1 text-xs font-semibold text-meadow">
+              Pay <Money cents={tour.depositFromCents} /> to book
+            </span>
+          )}
         </div>
       </div>
     </article>

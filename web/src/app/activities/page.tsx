@@ -21,14 +21,16 @@ export default async function ActivitiesPage() {
             href={`/activities/${a.slug}`}
             className="group overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-raised"
           >
-            <div className="relative aspect-[4/3] overflow-hidden">
-              <Image
-                src={a.hero.src}
-                alt={a.hero.alt}
-                fill
-                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+            <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
+              {a.hero && (
+                <Image
+                  src={a.hero.src}
+                  alt={a.hero.alt}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              )}
             </div>
             <div className="p-5">
               <h2 className="flex items-center justify-between font-semibold text-ink group-hover:text-lake">
