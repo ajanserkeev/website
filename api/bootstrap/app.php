@@ -13,7 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // The API sits behind Caddy and the Next.js BFF; trust their X-Forwarded-For so rate limits see the
+        // traveler's IP. TRUSTED_PROXIES lists them in production (plan, recommendation 12).
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

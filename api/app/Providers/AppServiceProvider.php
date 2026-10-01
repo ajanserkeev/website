@@ -17,6 +17,11 @@ use App\Models\Tour;
 use App\Models\TourDay;
 use App\Models\TourFaq;
 use App\Models\TourItem;
+use App\Payments\ManualGateway;
+use App\Payments\PaymentGateway;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -34,7 +39,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Manual payments until an acquirer is connected (step 6.2 adds its driver).
+        $this->app->bind(PaymentGateway::class, ManualGateway::class);
     }
 
     /**
@@ -42,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 5 booking requests per hour per traveler IP (step 4.6). The site's BFF forwards the real IP.
+        RateLimiter::for('booking-requests', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
+
         $revalidate = fn () => RevalidateFrontend::dispatch()->afterCommit();
         foreach (self::CATALOG_MODELS as $model) {
             $model::saved($revalidate);

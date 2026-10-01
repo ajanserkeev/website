@@ -42,8 +42,9 @@ enum BookingStatus: string implements HasColor, HasLabel
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::New => [self::Checking, self::Declined],
-            self::Checking => [self::AwaitingPayment, self::Declined],
+            // The traveler may withdraw a request at any time before the trip.
+            self::New => [self::Checking, self::Declined, self::CancelledByTourist],
+            self::Checking => [self::AwaitingPayment, self::Declined, self::CancelledByTourist],
             self::AwaitingPayment => [self::DepositPaid, self::Expired, self::CancelledByTourist],
             self::DepositPaid => [self::VoucherSent, self::CancelledByTourist, self::CancelledByOperator],
             self::VoucherSent => [self::Completed, self::CancelledByTourist, self::CancelledByOperator],

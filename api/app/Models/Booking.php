@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
  * (launch document, section 07: amounts come from the database, not the browser).
  */
 #[Fillable(['customer_name', 'email', 'whatsapp', 'country', 'special_requests', 'adults', 'children'])]
-#[Hidden(['public_token_hash', 'terms_ip'])]
+#[Hidden(['public_token_hash', 'public_token_encrypted', 'terms_ip'])]
 class Booking extends Model
 {
     use HasFactory;
@@ -37,6 +37,10 @@ class Booking extends Model
             'paid_at' => 'datetime',
             'voucher_sent_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'payment_reminder_sent_at' => 'datetime',
+            'pre_trip_reminder_sent_at' => 'datetime',
+            'review_requested_at' => 'datetime',
+            'public_token_encrypted' => 'encrypted',
             'utm' => 'array',
         ];
     }
@@ -61,6 +65,21 @@ class Booking extends Model
     public static function findByPublicToken(string $token): ?self
     {
         return self::query()->where('public_token_hash', self::hashToken($token))->first();
+    }
+
+    /** Sets both the lookup hash and the encrypted copy used to put the link into later emails. */
+    public function setPublicToken(string $token): void
+    {
+        $this->public_token_hash = self::hashToken($token);
+        $this->public_token_encrypted = $token;
+    }
+
+    /** Link to the traveler's "My booking" page, or null for bookings created without a stored token. */
+    public function myBookingUrl(): ?string
+    {
+        return $this->public_token_encrypted
+            ? config('brand.frontend_url').'/booking/'.$this->public_token_encrypted
+            : null;
     }
 
     public function travelerCount(): int
