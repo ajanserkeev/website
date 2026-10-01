@@ -84,6 +84,30 @@ services:
       SKIP_MIGRATIONS: "1"
     depends_on: [api]
 
+  # Laravel scheduler: booking timers every 15 minutes (step 4.9).
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+      target: dev
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - ../api:/var/www/html
+      - api_vendor:/var/www/html/vendor
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: tunduk
+      DB_USERNAME: tunduk
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      SKIP_MIGRATIONS: "1"
+    depends_on: [api]
+
   web:
     image: node:24-alpine
     working_dir: /app

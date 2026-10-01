@@ -12,6 +12,16 @@ return [
 
     'currency' => 'USD',
 
+    // Version of Booking Terms the traveler accepts; stored on each booking (chargeback evidence).
+    'terms_version' => env('TERMS_VERSION', '2026-10-draft'),
+
+    // Staff contact shown in traveler emails.
+    'whatsapp' => env('BRAND_WHATSAPP'),
+    'support_email' => env('BRAND_SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS')),
+
+    // Telegram bot for new-request and payment alerts to staff (users.telegram_chat_id). Empty: alerts are off.
+    'telegram_bot_token' => env('TELEGRAM_BOT_TOKEN'),
+
     // Public Next.js site, for "Open on site" links in the admin.
     // Folder with demo photos for DemoCatalogSeeder (web/public/demo mounted in Docker); empty in CI.
     'demo_photos_path' => env('DEMO_PHOTOS_PATH'),
