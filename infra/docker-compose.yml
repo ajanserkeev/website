@@ -1,0 +1,73 @@
+# Local development stack. Run from the repo root:
+#   docker compose -f infra/docker-compose.yml up
+name: tunduk
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: tunduk
+      POSTGRES_USER: tunduk
+      POSTGRES_PASSWORD: secret
+    ports: ["5432:5432"]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tunduk -d tunduk"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025" # web UI
+      - "1025:1025" # SMTP
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+      target: dev
+    volumes:
+      - ../api:/var/www/html
+      # vendor/ lives in a volume: reading ~10k files over the host bind mount is very slow on Windows
+      - api_vendor:/var/www/html/vendor
+    ports: ["8000:8000"]
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: tunduk
+      DB_USERNAME: tunduk
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  web:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- -H 0.0.0.0"
+    volumes:
+      - ../web:/app
+      - web_node_modules:/app/node_modules
+    ports: ["3000:3000"]
+    environment:
+      API_URL: http://api:8000
+      WATCHPACK_POLLING: "true"
+    depends_on: [api]
+
+volumes:
+  pg_data: {}
+  api_vendor: {}
+  web_node_modules: {}

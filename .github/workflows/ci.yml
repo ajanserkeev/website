@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: tunduk_test
+          POSTGRES_USER: tunduk
+          POSTGRES_PASSWORD: secret
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tunduk -d tunduk_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: tunduk
+      DB_PASSWORD: secret
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, intl, zip, gd, exif, pcntl, bcmath
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('api/composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: ./vendor/bin/pint --test
+      - run: ./vendor/bin/pest
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
