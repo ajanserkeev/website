@@ -16,6 +16,7 @@ use App\Models\Region;
 use App\Models\Tour;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Spatie\MediaLibrary\HasMedia;
 
 /**
  * Demo catalog shared with the web app (web/src/data/demo, exported to data/demo-catalog.json).
@@ -38,6 +39,23 @@ class DemoCatalogSeeder extends Seeder
         });
     }
 
+    /**
+     * Attaches a demo photo from DEMO_PHOTOS_PATH (web/public/demo mounted in Docker). Skipped when the folder
+     * is absent, e.g. in CI. $src is the web path, like "/demo/song-kul-panorama.webp".
+     */
+    private function attachPhoto(HasMedia $model, string $collection, string $src, string $alt): void
+    {
+        $dir = config('brand.demo_photos_path');
+        $path = $dir ? rtrim($dir, '/').'/'.basename($src) : null;
+        if (! $path || ! is_file($path)) {
+            return;
+        }
+        $model->addMedia($path)
+            ->preservingOriginal()
+            ->withCustomProperties(['alt' => $alt])
+            ->toMediaCollection($collection);
+    }
+
     /** @return array<string, Region> */
     private function regions(array $rows): array
     {
@@ -50,6 +68,7 @@ class DemoCatalogSeeder extends Seeder
                 'places' => $row['places'],
                 'sort' => $i,
             ]);
+            $this->attachPhoto($regions[$row['slug']], 'hero', $row['hero']['src'], $row['hero']['alt']);
         }
 
         return $regions;
@@ -66,6 +85,7 @@ class DemoCatalogSeeder extends Seeder
                 'summary' => $row['summary'],
                 'sort' => $i,
             ]);
+            $this->attachPhoto($activities[$row['slug']], 'hero', $row['hero']['src'], $row['hero']['alt']);
         }
 
         return $activities;
@@ -137,6 +157,9 @@ class DemoCatalogSeeder extends Seeder
                 'published_at' => now(),
             ]);
 
+            foreach ($row['images'] as $image) {
+                $this->attachPhoto($tour, 'gallery', $image['src'], $image['alt']);
+            }
             foreach ($row['days'] as $day) {
                 $tour->days()->create([
                     'day_number' => $day['day'],
@@ -238,6 +261,7 @@ class DemoCatalogSeeder extends Seeder
                 'reading_minutes' => $row['readingMinutes'],
                 'published_at' => $row['updatedOn'],
             ]);
+            $this->attachPhoto($post, 'hero', $row['hero']['src'], $row['hero']['alt']);
             $post->tours()->attach(
                 collect($row['tourSlugs'])->mapWithKeys(fn ($slug, $i) => [$tours[$slug]['model']->id => ['sort' => $i]])->all()
             );

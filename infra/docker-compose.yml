@@ -38,6 +38,8 @@ services:
       - ../api:/var/www/html
       # vendor/ lives in a volume: reading ~10k files over the host bind mount is very slow on Windows
       - api_vendor:/var/www/html/vendor
+      # Demo photos from the web app, attached to tours by DemoCatalogSeeder.
+      - ../web/public/demo:/demo-photos:ro
     ports: ["8000:8000"]
     environment:
       DB_CONNECTION: pgsql
@@ -53,6 +55,30 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_started }
+
+  # Queue worker: image conversions now, booking emails and Telegram alerts from step 4.6.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+      target: dev
+    command: ["php", "artisan", "horizon"]
+    volumes:
+      - ../api:/var/www/html
+      - api_vendor:/var/www/html/vendor
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: tunduk
+      DB_USERNAME: tunduk
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      SKIP_MIGRATIONS: "1"
+    depends_on: [api]
 
   web:
     image: node:24-alpine
