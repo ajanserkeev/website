@@ -4,6 +4,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { DemoNotice } from "@/components/layout/demo-notice";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { UtmCapture } from "@/components/utm-capture";
 import { RatesProvider } from "@/components/rates-provider";
 import { brand } from "@/lib/brand";
 import { getCurrencyRates } from "@/lib/catalog";
@@ -47,6 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-dvh flex-col">
         <NuqsAdapter>
           <RatesProvider rates={rates}>
+            <UtmCapture />
             <DemoNotice />
             <SiteHeader />
             <main className="flex-1">{children}</main>

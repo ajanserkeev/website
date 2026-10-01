@@ -26,7 +26,8 @@ docker compose -f infra/docker-compose.yml up
 | http://localhost:8000/admin | админка (api) |
 | http://localhost:8025 | Mailpit, входящие письма |
 | http://localhost:8000/api/v1/health | проверка API и базы |
-| `worker` | Horizon: фото в WebP, позже письма и Telegram |
+| `worker` | Horizon: фото в WebP, письма туристам, Telegram |
+| `scheduler` | таймеры броней каждые 15 минут: истечение ссылки, напоминания, просьба об отзыве |
 | localhost:5432 | PostgreSQL 17 (tunduk / secret), базы `tunduk` и `tunduk_test` |
 
 Первый запуск сам ставит зависимости, создаёт `api/.env` и прогоняет миграции. Пользователь для админки:
@@ -62,6 +63,14 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+
+## Как работает бронь
+
+1. Турист на странице тура жмёт «Check availability» → форма в 3 шага → `POST /api/bookings` (Next.js) → Laravel.
+2. В админке «Брони»: «Взять в работу» → «Фирма подтвердила» (вставить ссылку на оплату из кабинета эквайера) →
+   «Оплата получена» (турист получает ваучер с контактами фирмы). Кнопка «Написать фирме» открывает WhatsApp с готовым текстом.
+3. Турист видит всё на странице «Моя бронь» по секретной ссылке из письма; там же отмена с расчётом возврата.
+4. Письма в разработке приходят в Mailpit (http://localhost:8025). Telegram включается `TELEGRAM_BOT_TOKEN` и chat id у пользователя.
 
 ## Данные и демо-контент
 

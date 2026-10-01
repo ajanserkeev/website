@@ -238,6 +238,7 @@ export default async function TourPage(props: PageProps<"/tours/[slug]">) {
 
           <aside className="lg:sticky lg:top-24 lg:col-span-4">
             <BookingWidget
+              tourSlug={tour.slug}
               tourTitle={tour.title}
               operatorName={tour.operator.name}
               durationDays={tour.durationDays}

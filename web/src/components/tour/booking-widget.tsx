@@ -18,6 +18,7 @@ export type WidgetDeparture = {
 };
 
 type Props = {
+  tourSlug: string;
   tourTitle: string;
   operatorName: string;
   durationDays: number;
@@ -41,8 +42,8 @@ function privatePriceFor(prices: PrivatePrice[], people: number): Cents | null {
   return prices.find((p) => people >= p.groupSizeFrom && people <= p.groupSizeTo)?.pricePerPersonCents ?? null;
 }
 
-/** Sticky booking widget (launch document, items 10–11). Until the booking API exists (step 4.6),
- * "Check availability" sends a prefilled WhatsApp request. */
+/** Sticky booking widget (launch document, items 10–11). "Check availability" opens the request form
+ * with the chosen dates and travelers; tours without listed dates or prices fall back to WhatsApp. */
 export function BookingWidget(props: Props) {
   const hasGroup = props.departures.length > 0;
   const hasPrivate = props.privatePrices.length > 0;
@@ -73,13 +74,13 @@ export function BookingWidget(props: Props) {
   const dates =
     mode === "group" ? (departure ? formatRange(departure.startsOn, departure.endsOn) : "") : privateDate || "flexible dates";
   const ready = mode === "group" ? Boolean(departure && departure.seatsLeft > 0) : Boolean(privateDate);
-  const message = [
-    `Hi ${brand.name}! I'd like to check availability:`,
-    `Tour: ${props.tourTitle}`,
-    `Type: ${mode === "group" ? "group departure" : "private tour"}`,
-    `Dates: ${dates}`,
-    `Travelers: ${people}`,
-  ].join("\n");
+  const params = new URLSearchParams({ adults: String(people) });
+  if (mode === "group" && departure) params.set("departure", departure.id);
+  if (mode === "private" && privateDate) params.set("date", privateDate);
+  const href =
+    fromCents === null
+      ? whatsappUrl(`Hi ${brand.name}! I'd like to check availability for ${props.tourTitle}, ${people} travelers, ${dates}.`)
+      : `/tours/${props.tourSlug}/book?${params}`;
 
   return (
     <div id="book" className="scroll-mt-24 overflow-hidden rounded-2xl border border-line bg-white shadow-overlay">
@@ -215,19 +216,17 @@ export function BookingWidget(props: Props) {
         )}
 
         <a
-          href={ready ? whatsappUrl(message) : undefined}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-disabled={!ready}
+          href={ready || fromCents === null ? href : undefined}
+          aria-disabled={!ready && fromCents !== null}
           className={cn(
             "flex h-12 items-center justify-center gap-2 rounded-lg bg-kyrgyz px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-kyrgyz-hover",
-            !ready && "pointer-events-none opacity-50",
+            !ready && fromCents !== null && "pointer-events-none opacity-50",
           )}
         >
           Check availability
           <ArrowRight className="size-5" aria-hidden="true" />
         </a>
-        {!ready && <p className="-mt-3 text-center text-xs text-ink-muted">Choose {mode === "group" ? "a departure" : "a start date"} first.</p>}
+        {!ready && fromCents !== null && <p className="-mt-3 text-center text-xs text-ink-muted">Choose {mode === "group" ? "a departure" : "a start date"} first.</p>}
 
         <ul className="space-y-2 text-sm text-ink-muted">
           <li className="flex gap-2">

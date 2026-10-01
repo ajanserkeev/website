@@ -202,3 +202,47 @@ export interface Guide {
 }
 
 export type CurrencyRates = Record<string, number>;
+
+export type BookingStatus =
+  | "new"
+  | "checking"
+  | "awaiting_payment"
+  | "deposit_paid"
+  | "voucher_sent"
+  | "completed"
+  | "declined"
+  | "expired"
+  | "cancelled_by_tourist"
+  | "cancelled_by_operator";
+
+/** GET /bookings/{token}: the traveler's "My booking" page. */
+export interface MyBooking {
+  code: string;
+  status: BookingStatus;
+  statusLabel: string;
+  createdAt: string;
+  tour: { slug: string; title: string; image: Photo | null };
+  dateFrom: string;
+  dateTo: string;
+  adults: number;
+  children: number;
+  travelers: string[];
+  customerName: string;
+  pricingSource: "departure" | "private" | "offer";
+  totalCents: Cents;
+  depositCents: Cents;
+  balanceCents: Cents;
+  commissionRate: number;
+  payment: { url: string; expiresAt: string } | null;
+  paidAt: string | null;
+  operator: {
+    name: string;
+    baseCity: string | null;
+    /** Only after the deposit is paid. */
+    contacts: { contactName: string | null; whatsapp: string | null; phone: string | null; email: string | null } | null;
+  };
+  canCancel: boolean;
+  refundIfCancelledCents: Cents;
+  cancelledAt: string | null;
+  timeline: { status: BookingStatus; label: string; at: string }[];
+}

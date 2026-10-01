@@ -41,3 +41,34 @@ export async function apiGet<T>(path: string, params?: Record<string, string | n
   const body = (await response.json()) as { data: T };
   return body.data;
 }
+
+/** Private, never cached: "My booking" data must not be shared between visitors. */
+export async function apiGetPrivate<T>(path: string): Promise<T | null> {
+  await connection();
+  const response = await fetch(`${API_URL}/api/v1/${path}`, { headers: { Accept: "application/json" }, cache: "no-store" });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new ApiError(response.status, path);
+  return ((await response.json()) as { data: T }).data;
+}
+
+/**
+ * Forwards a traveler's POST to Laravel from a route handler (BFF, plan recommendation 12),
+ * passing the traveler's IP so the API rate limit counts people, not the Next.js server.
+ */
+export async function proxyPost(path: string, request: Request): Promise<Response> {
+  const forwardedFor = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "";
+  const response = await fetch(`${API_URL}/api/v1/${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
+    },
+    body: await request.text(),
+    cache: "no-store",
+  });
+  return new Response(await response.text(), {
+    status: response.status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
