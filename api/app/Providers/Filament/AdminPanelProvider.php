@@ -37,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#2D5D8C'),
             ])
             ->navigationGroups([
+                NavigationGroup::make('Заявки'),
                 NavigationGroup::make('Каталог'),
                 NavigationGroup::make('Контент'),
                 NavigationGroup::make('Настройки'),

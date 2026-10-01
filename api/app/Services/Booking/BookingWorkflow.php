@@ -92,15 +92,18 @@ final class BookingWorkflow
     /** The operator confirmed the spots: send the traveler the payment link, valid for 48 hours. */
     public function confirm(Booking $booking, string $paymentLinkUrl, ?User $user = null): Booking
     {
-        if ($booking->status === BookingStatus::New) {
-            $this->startChecking($booking, $user);
-        }
+        // One transaction: if the seats can't be held, the booking stays where it was.
+        return DB::transaction(function () use ($booking, $paymentLinkUrl, $user) {
+            if ($booking->status === BookingStatus::New) {
+                $this->startChecking($booking, $user);
+            }
 
-        return $this->transitions->transition($booking, BookingStatus::AwaitingPayment, $user, null, [
-            'payment_link_url' => $paymentLinkUrl,
-            'payment_link_expires_at' => now()->addHours(self::PAYMENT_LINK_HOURS),
-            'payment_reminder_sent_at' => null,
-        ]);
+            return $this->transitions->transition($booking, BookingStatus::AwaitingPayment, $user, null, [
+                'payment_link_url' => $paymentLinkUrl,
+                'payment_link_expires_at' => now()->addHours(self::PAYMENT_LINK_HOURS),
+                'payment_reminder_sent_at' => null,
+            ]);
+        });
     }
 
     public function decline(Booking $booking, ?string $note = null, ?User $user = null): Booking
@@ -115,17 +118,19 @@ final class BookingWorkflow
             throw new InvalidBookingAction('Only a booking that is awaiting the deposit can be marked as paid.');
         }
 
-        $booking->payments()->create([
-            'provider' => $this->gateway->name(),
-            'provider_ref' => $providerRef,
-            'amount_cents' => $booking->deposit_cents,
-            'currency' => 'USD',
-            'status' => PaymentStatus::Succeeded,
-            'paid_at' => now(),
-        ]);
-        $this->transitions->transition($booking, BookingStatus::DepositPaid, $user, $providerRef ? "Payment {$providerRef}" : null);
+        return DB::transaction(function () use ($booking, $providerRef, $user) {
+            $booking->payments()->create([
+                'provider' => $this->gateway->name(),
+                'provider_ref' => $providerRef,
+                'amount_cents' => $booking->deposit_cents,
+                'currency' => 'USD',
+                'status' => PaymentStatus::Succeeded,
+                'paid_at' => now(),
+            ]);
+            $this->transitions->transition($booking, BookingStatus::DepositPaid, $user, $providerRef ? "Payment {$providerRef}" : null);
 
-        return $this->transitions->transition($booking, BookingStatus::VoucherSent, null, 'Voucher sent automatically');
+            return $this->transitions->transition($booking, BookingStatus::VoucherSent, null, 'Voucher sent automatically');
+        });
     }
 
     public function expire(Booking $booking): Booking
