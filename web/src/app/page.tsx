@@ -5,19 +5,21 @@ import { ShyrdakDivider } from "@/components/brand/shyrdak-divider";
 import { CollectionTabs } from "@/components/home/collection-tabs";
 import { HeroSearch } from "@/components/home/hero-search";
 import { HowBookingWorks } from "@/components/home/how-booking-works";
+import { ExploreMapBlock } from "@/components/map/lazy-maps";
 import { TrustStrip } from "@/components/home/trust-strip";
 import { RegionGrid } from "@/components/region-grid";
 import { SectionHeading } from "@/components/section-heading";
 import { buttonVariants } from "@/components/ui/button";
 import { brand, whatsappUrl } from "@/lib/brand";
-import { listActivities, listCollections, listFeaturedReviews, listRegions, upcomingMonths } from "@/lib/catalog";
+import { getExploreMap, listActivities, listCollections, listFeaturedReviews, listRegions, upcomingMonths } from "@/lib/catalog";
 
 export default async function Home() {
-  const [activityList, collectionList, regionList, reviews] = await Promise.all([
+  const [activityList, collectionList, regionList, reviews, mapData] = await Promise.all([
     listActivities(),
     listCollections({ featured: true }),
     listRegions(),
     listFeaturedReviews(),
+    getExploreMap(),
   ]);
 
   const tabs = collectionList
@@ -99,6 +101,22 @@ export default async function Home() {
         </div>
         <RegionGrid regions={regionList} />
       </section>
+
+      {mapData.places.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+          <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <SectionHeading
+              eyebrow="Map"
+              title="Explore Kyrgyzstan on the map"
+              text="Lakes, passes and yurt camps, and the routes our tours take between them. Try the 3D relief."
+            />
+            <Link href="/map" className="font-semibold text-lake hover:underline">
+              Open the full map →
+            </Link>
+          </div>
+          <ExploreMapBlock data={mapData} />
+        </section>
+      )}
 
       <section className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">

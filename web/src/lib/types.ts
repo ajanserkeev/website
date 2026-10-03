@@ -93,6 +93,8 @@ export interface TourDay {
   meals: Meal[];
   activityHours: string | null;
   maxAltitudeM: number | null;
+  /** Where the day ends, if it is on the map. */
+  place: Ref | null;
 }
 
 export interface Departure {
@@ -169,6 +171,95 @@ export interface Tour {
   badges: Badge[];
   metaTitle: string | null;
   metaDescription: string | null;
+  /** Null when the tour has neither a drawn route nor days at places. */
+  map: TourMapData | null;
+}
+
+// Maps (api/app/Services/Maps). Coordinates are [longitude, latitude] like in GeoJSON.
+
+export type LngLat = [number, number];
+
+export type PlaceKind =
+  | "lake"
+  | "pass"
+  | "peak"
+  | "canyon"
+  | "yurt_camp"
+  | "hot_spring"
+  | "waterfall"
+  | "historical"
+  | "town"
+  | "park"
+  | "viewpoint";
+
+/** How a route segment is travelled. "line" is a straight connection. */
+export type RouteMode = "drive" | "hike" | "horse" | "line";
+
+export interface RouteFeature {
+  type: "Feature";
+  properties: { mode: RouteMode; distanceKm: number; approximate: boolean };
+  geometry: { type: "LineString"; coordinates: LngLat[] };
+}
+
+/** tours.route_geojson, drawn in the admin route builder. */
+export interface RouteGeoJson {
+  type: "FeatureCollection";
+  features: RouteFeature[];
+  properties: {
+    source: "builder" | "gpx";
+    waypoints: { lng: number; lat: number; name: string | null }[];
+    distanceKm: number;
+    distanceByMode: Partial<Record<RouteMode, number>>;
+    durationHours: number;
+    elevationGainM: number | null;
+    elevationLossM: number | null;
+    maxAltitudeM: number | null;
+    minAltitudeM: number | null;
+    /** [km from the start, metres] */
+    elevationProfile: [number, number][] | null;
+    approximate: boolean;
+  };
+}
+
+export interface MapPlaceRef {
+  slug: string;
+  name: string;
+  kind: PlaceKind;
+  kindLabel: string;
+  lng: number;
+  lat: number;
+  altitudeM: number | null;
+}
+
+export interface TourStop extends MapPlaceRef {
+  day: number;
+}
+
+export interface TourMapData {
+  route: RouteGeoJson | null;
+  stops: TourStop[];
+}
+
+/** GET /map */
+export interface MapPlace extends MapPlaceRef {
+  summary: string | null;
+  featured: boolean;
+  region: Ref | null;
+  photo: Photo | null;
+  /** Slugs of published tours that stop here. */
+  tours: string[];
+}
+
+export interface MapTour extends TourSummary {
+  /** Thinned route, or the day stops joined in order. */
+  line: LngLat[];
+  stops: string[];
+  distanceKm: number | null;
+}
+
+export interface ExploreMapData {
+  places: MapPlace[];
+  tours: MapTour[];
 }
 
 export interface Collection {

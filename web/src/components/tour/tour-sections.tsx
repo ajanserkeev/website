@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   BadgeCheck,
   CalendarDays,
@@ -7,6 +8,7 @@ import {
   Gauge,
   Languages,
   Lock,
+  MapPin,
   Mountain,
   Star,
   Sun,
@@ -88,6 +90,17 @@ export function Itinerary({ days }: { days: TourDay[] }) {
             <div className="pb-3">
               <p className="text-ink-muted">{day.description}</p>
               <ul className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-ink">
+                {day.place && (
+                  <li>
+                    <Link
+                      href={`/map?place=${day.place.slug}`}
+                      className="flex items-center gap-1 rounded-md bg-lake-50 px-2 py-1 text-lake hover:bg-lake hover:text-white"
+                    >
+                      <MapPin className="size-3.5" aria-hidden="true" />
+                      {day.place.name}
+                    </Link>
+                  </li>
+                )}
                 {day.overnight && (
                   <li className="flex items-center gap-1 rounded-md bg-snow px-2 py-1">
                     <Tent className="size-3.5 text-meadow" aria-hidden="true" />

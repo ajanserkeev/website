@@ -20,6 +20,9 @@
 # production
 /build
 
+# MapLibre worker, copied by scripts/vendor-maplibre.mjs on npm install
+/public/vendor/maplibre/
+
 # misc
 .DS_Store
 *.pem

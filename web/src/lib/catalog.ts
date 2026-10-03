@@ -3,7 +3,7 @@ import "server-only";
 // live in api/app/Services/Catalog; the site only displays them.
 import { apiGet } from "./api";
 import type { CatalogFilters } from "./search-params";
-import type { Collection, CurrencyRates, Guide, Review, Taxonomy, Tour, TourSummary } from "./types";
+import type { Collection, CurrencyRates, ExploreMapData, Guide, Review, Taxonomy, Tour, TourSummary } from "./types";
 
 export type { Badge, RatingSummary } from "./types";
 /** Cards are served ready-made by the API. */
@@ -15,6 +15,11 @@ export async function listTours(filters: CatalogFilters & { slugs?: string[] } =
 
 export async function getTour(slug: string) {
   return apiGet<Tour>(`tours/${encodeURIComponent(slug)}`);
+}
+
+/** Places of interest and tour lines for the explore map. */
+export async function getExploreMap(): Promise<ExploreMapData> {
+  return (await apiGet<ExploreMapData>("map")) ?? { places: [], tours: [] };
 }
 
 export async function listRegions() {

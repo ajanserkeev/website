@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check, MapPin } from "lucide-react";
+import { TourRouteMapBlock } from "@/components/map/lazy-maps";
 import { Money } from "@/components/money";
 import { BookingWidget } from "@/components/tour/booking-widget";
 import { Rating } from "@/components/tour/rating";
@@ -204,6 +205,11 @@ export default async function TourPage(props: PageProps<"/tours/[slug]">) {
             {tour.days.length > 0 && (
               <Panel id="itinerary" title="Itinerary">
                 <Itinerary days={tour.days} />
+              </Panel>
+            )}
+            {tour.map && (
+              <Panel id="route-map" title="Route map">
+                <TourRouteMapBlock data={tour.map} maxAltitudeM={tour.maxAltitudeM} />
               </Panel>
             )}
             <Panel title="What's included">
