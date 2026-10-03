@@ -87,6 +87,12 @@ class Booking extends Model
         return $this->adults + $this->children;
     }
 
+    /** Traveler's account: set when they booked signed in, or linked later by the same verified email. */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function tour(): BelongsTo
     {
         return $this->belongsTo(Tour::class);

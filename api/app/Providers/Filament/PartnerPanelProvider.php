@@ -2,13 +2,12 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Dashboard;
+use App\Filament\Partner\Pages\Dashboard;
 use App\Http\Middleware\UseAdminLocale;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -20,33 +19,24 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-class AdminPanelProvider extends PanelProvider
+/**
+ * Operator cabinet: a partner sees their tours, bookings and money, read-only. Bookings are confirmed by
+ * the platform team in /admin; partners get the numbers here without having to approve anything.
+ */
+class PartnerPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-            ->id('admin')
-            ->path('admin')
+            ->id('partner')
+            ->path('partner')
             ->login()
-            ->brandName(config('brand.name').' · админка')
-            ->colors([
-                // Lake blue: Kyrgyz red stays reserved for the traveler's primary action on the site.
-                'primary' => Color::hex('#2D5D8C'),
-            ])
-            ->navigationGroups([
-                NavigationGroup::make('Заявки'),
-                NavigationGroup::make('Каталог'),
-                NavigationGroup::make('Контент'),
-                NavigationGroup::make('Настройки'),
-            ])
+            ->brandName(config('brand.name').' · кабинет партнёра')
+            ->colors(['primary' => Color::hex('#11804A')])
             ->maxContentWidth(Width::Full)
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverResources(in: app_path('Filament/Partner/Resources'), for: 'App\Filament\Partner\Resources')
+            ->discoverWidgets(in: app_path('Filament/Partner/Widgets'), for: 'App\Filament\Partner\Widgets')
+            ->pages([Dashboard::class])
             ->middleware([
                 UseAdminLocale::class,
                 EncryptCookies::class,
@@ -59,8 +49,6 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ]);
+            ->authMiddleware([Authenticate::class]);
     }
 }

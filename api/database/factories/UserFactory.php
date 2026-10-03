@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\UserRole;
+use App\Models\Operator;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +34,18 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'role' => UserRole::Admin,
         ];
+    }
+
+    /** Operator account for the /partner cabinet. */
+    public function partner(?Operator $operator = null): static
+    {
+        return $this->state(fn () => ['role' => UserRole::Partner, 'operator_id' => $operator?->id ?? Operator::factory()]);
+    }
+
+    /** Traveler who signed in with Google on the site. */
+    public function tourist(): static
+    {
+        return $this->state(fn () => ['role' => UserRole::Tourist, 'password' => null, 'google_id' => (string) fake()->unique()->numberBetween(10 ** 15, 10 ** 16)]);
     }
 
     /**
