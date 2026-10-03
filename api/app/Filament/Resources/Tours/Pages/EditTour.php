@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Tours\Pages;
 
+use App\Filament\Resources\Tours\Pages\Concerns\BuildsTourRoute;
 use App\Filament\Resources\Tours\TourResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -12,6 +13,8 @@ use Filament\Support\Icons\Heroicon;
 
 class EditTour extends EditRecord
 {
+    use BuildsTourRoute;
+
     protected static string $resource = TourResource::class;
 
     protected function getHeaderActions(): array

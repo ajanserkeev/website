@@ -6,6 +6,7 @@ use App\Enums\DepartureStatus;
 use App\Enums\TourItemKind;
 use App\Enums\TourStatus;
 use App\Enums\TourType;
+use App\Filament\Forms\Components\RouteBuilder;
 use App\Filament\Forms\Fields;
 use App\Models\Operator;
 use Filament\Forms\Components\CheckboxList;
@@ -25,7 +26,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 /**
- * Tour editor (step 4.2): Main, Itinerary, Included, Photos, Group dates, Private prices, SEO.
+ * Tour editor (step 4.2): Main, Itinerary, Route map, Included, Photos, Group dates, Private prices, SEO.
  * Texts are in English because they go to the site; labels are in Russian for the team.
  */
 class TourForm
@@ -36,6 +37,7 @@ class TourForm
             Tabs::make()->columnSpanFull()->persistTabInQueryString()->tabs([
                 self::main(),
                 self::itinerary(),
+                self::routeMap(),
                 self::included(),
                 self::photos(),
                 self::groupDates(),
@@ -102,15 +104,24 @@ class TourForm
                 ->schema([
                     TextInput::make('title')->label('Заголовок дня (EN)')->required()->placeholder('Kyzart village → Kilemche jailoo'),
                     Textarea::make('description')->label('Описание (EN)')->required()->rows(3),
-                    Grid::make(3)->schema([
+                    Grid::make(4)->schema([
                         TextInput::make('overnight')->label('Ночёвка (EN)')->placeholder('Yurt camp'),
                         TextInput::make('activity_hours')->label('Часы в пути (EN)')->placeholder('4 h riding'),
                         TextInput::make('max_altitude_m')->label('Макс. высота, м')->numeric(),
+                        Select::make('place_id')->label('Место дня на карте')->relationship('place', 'name')->searchable()->preload()
+                            ->helperText('Где заканчивается день. Нет в списке: «Места на карте».'),
                     ]),
                     CheckboxList::make('meals')->label('Питание')->columns(3)->options([
                         'breakfast' => 'Завтрак', 'lunch' => 'Обед', 'dinner' => 'Ужин',
                     ]),
                 ]),
+        ]);
+    }
+
+    private static function routeMap(): Tab
+    {
+        return Tab::make('Маршрут')->schema([
+            RouteBuilder::make('route_geojson')->hiddenLabel(),
         ]);
     }
 
