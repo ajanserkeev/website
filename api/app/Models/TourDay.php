@@ -21,4 +21,10 @@ class TourDay extends Model
     {
         return $this->belongsTo(Tour::class);
     }
+
+    /** Where the day ends; numbered on the tour map. */
+    public function place(): BelongsTo
+    {
+        return $this->belongsTo(Place::class);
+    }
 }

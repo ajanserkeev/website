@@ -28,6 +28,18 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Tour route builder (App\Services\Maps\RouteBuilder). The public OSRM servers (project-osrm.org for cars,
+    // FOSSGIS routing.openstreetmap.de for walking) are meant for light use: fine for editors drawing routes,
+    // never for traffic from the site. For heavy use run an own OSRM on the Geofabrik Kyrgyzstan extract.
+    'osrm' => [
+        'driving_url' => env('OSRM_DRIVING_URL', 'https://router.project-osrm.org'),
+        'foot_url' => env('OSRM_FOOT_URL', 'https://routing.openstreetmap.de/routed-foot'),
+    ],
+
+    'elevation' => [
+        'url' => env('ELEVATION_API_URL', 'https://api.open-meteo.com/v1/elevation'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

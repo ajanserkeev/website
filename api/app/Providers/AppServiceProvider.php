@@ -9,6 +9,7 @@ use App\Models\CurrencyRate;
 use App\Models\Departure;
 use App\Models\Operator;
 use App\Models\OperatorGuide;
+use App\Models\Place;
 use App\Models\Post;
 use App\Models\PrivatePrice;
 use App\Models\Region;
@@ -31,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
     private const CATALOG_MODELS = [
         Tour::class, TourDay::class, TourItem::class, TourFaq::class, Departure::class, PrivatePrice::class,
         Operator::class, OperatorGuide::class, Region::class, Activity::class, Collection::class, Post::class,
-        Review::class, CurrencyRate::class, Media::class,
+        Review::class, CurrencyRate::class, Place::class, Media::class,
     ];
 
     /**

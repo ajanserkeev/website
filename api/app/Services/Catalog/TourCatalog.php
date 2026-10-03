@@ -46,7 +46,7 @@ final class TourCatalog
 
     public function find(string $slug): ?Tour
     {
-        return $this->query()->with(['days', 'items', 'faqs', 'operator.guides'])->where('slug', $slug)->first();
+        return $this->query()->with(['days.place', 'items', 'faqs', 'operator.guides'])->where('slug', $slug)->first();
     }
 
     /**

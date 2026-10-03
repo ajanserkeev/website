@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\DepartureStatus;
+use App\Enums\PlaceKind;
 use App\Enums\ReviewSource;
 use App\Enums\TourItemKind;
 use App\Enums\TourStatus;
@@ -11,6 +12,7 @@ use App\Models\Activity;
 use App\Models\Collection;
 use App\Models\CurrencyRate;
 use App\Models\Operator;
+use App\Models\Place;
 use App\Models\Post;
 use App\Models\Region;
 use App\Models\Tour;
@@ -30,9 +32,10 @@ class DemoCatalogSeeder extends Seeder
 
         DB::transaction(function () use ($data) {
             $regions = $this->regions($data['regions']);
+            $places = $this->places($data['places'], $regions);
             $activities = $this->activities($data['activities']);
             $operators = $this->operators($data['operators']);
-            $tours = $this->tours($data['tours'], $operators, $regions, $activities);
+            $tours = $this->tours($data['tours'], $operators, $regions, $activities, $places);
             $this->collections($data['collections'], $tours);
             $this->posts($data['guides'], $tours);
             $this->currencyRates();
@@ -72,6 +75,33 @@ class DemoCatalogSeeder extends Seeder
         }
 
         return $regions;
+    }
+
+    /**
+     * Map places from the GO-Kyrgyzstan prototype, coordinates checked against OpenStreetMap.
+     *
+     * @param  array<string, Region>  $regions
+     * @return array<string, Place>
+     */
+    private function places(array $rows, array $regions): array
+    {
+        $places = [];
+        foreach ($rows as $i => $row) {
+            $places[$row['slug']] = Place::create([
+                'name' => $row['name'],
+                'slug' => $row['slug'],
+                'kind' => PlaceKind::from($row['kind']),
+                'region_id' => isset($row['region']) ? $regions[$row['region']]->id : null,
+                'latitude' => $row['lat'],
+                'longitude' => $row['lng'],
+                'altitude_m' => $row['altitudeM'],
+                'summary' => $row['summary'] ?: null,
+                'is_featured' => $row['featured'],
+                'sort' => $i,
+            ]);
+        }
+
+        return $places;
     }
 
     /** @return array<string, Activity> */
@@ -126,7 +156,7 @@ class DemoCatalogSeeder extends Seeder
     }
 
     /** @return array<string, Tour> */
-    private function tours(array $rows, array $operators, array $regions, array $activities): array
+    private function tours(array $rows, array $operators, array $regions, array $activities, array $places): array
     {
         $tours = [];
         foreach ($rows as $row) {
@@ -150,6 +180,8 @@ class DemoCatalogSeeder extends Seeder
                 'season_to' => $row['season']['to'],
                 'min_age' => $row['minAge'] ?? null,
                 'highlights' => $row['highlights'],
+                // Drawn by `php artisan demo:build-routes` from the routePlan.
+                'route_geojson' => $row['routeGeojson'] ?? null,
                 'has_group_dates' => $row['departures'] !== [],
                 'has_private_option' => $row['privatePrices'] !== [],
                 'commission_rate' => $row['commissionRate'] ?? null,
@@ -169,6 +201,7 @@ class DemoCatalogSeeder extends Seeder
                     'meals' => $day['meals'],
                     'activity_hours' => $day['activityHours'] ?? null,
                     'max_altitude_m' => $day['maxAltitudeM'] ?? null,
+                    'place_id' => isset($day['place']) ? $places[$day['place']]->id : null,
                 ]);
             }
             foreach (['included' => TourItemKind::Included, 'excluded' => TourItemKind::Excluded] as $key => $kind) {

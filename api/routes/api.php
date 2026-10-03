@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\MapController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -22,6 +23,7 @@ Route::prefix('v1')->group(function () {
         Route::get('reviews/featured', 'featuredReviews');
         Route::get('currency-rates', 'currencyRates');
     });
+    Route::get('map', MapController::class);
 
     Route::controller(BookingController::class)->group(function () {
         Route::post('bookings', 'store')->middleware('throttle:booking-requests');

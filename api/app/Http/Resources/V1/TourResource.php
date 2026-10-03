@@ -7,6 +7,7 @@ use App\Enums\TourItemKind;
 use App\Models\Departure;
 use App\Models\Tour;
 use App\Services\Catalog\TourPresenter;
+use App\Services\Maps\TourMap;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -50,7 +51,9 @@ class TourResource extends JsonResource
                 'meals' => $d->meals ?? [],
                 'activityHours' => $d->activity_hours,
                 'maxAltitudeM' => $d->max_altitude_m,
+                'place' => $d->place?->is_published ? ['slug' => $d->place->slug, 'name' => $d->place->name] : null,
             ])->values(),
+            'map' => TourMap::forTour($this->resource),
             'included' => $this->items->where('kind', TourItemKind::Included)->pluck('text')->values(),
             'excluded' => $this->items->where('kind', TourItemKind::Excluded)->pluck('text')->values(),
             'faqs' => $this->faqs->map(fn ($f) => ['question' => $f->question, 'answer' => $f->answer])->values(),
