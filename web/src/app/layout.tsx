@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Unbounded, Work_Sans } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { SavedToursSync } from "@/components/account/saved-tours-sync";
 import { DemoNotice } from "@/components/layout/demo-notice";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -8,6 +9,7 @@ import { UtmCapture } from "@/components/utm-capture";
 import { RatesProvider } from "@/components/rates-provider";
 import { brand } from "@/lib/brand";
 import { getCurrencyRates } from "@/lib/catalog";
+import { getSessionToken } from "@/lib/session";
 import "./globals.css";
 
 const unbounded = Unbounded({
@@ -42,13 +44,14 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const rates = await getCurrencyRates();
+  const [rates, token] = await Promise.all([getCurrencyRates(), getSessionToken()]);
   return (
     <html lang="en" className={`${unbounded.variable} ${workSans.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <NuqsAdapter>
           <RatesProvider rates={rates}>
             <UtmCapture />
+            {token && <SavedToursSync />}
             <DemoNotice />
             <SiteHeader />
             <main className="flex-1">{children}</main>

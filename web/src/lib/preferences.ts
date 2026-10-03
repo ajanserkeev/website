@@ -59,8 +59,17 @@ export function usePreferences(): Preferences {
 
 export const setCurrency = (currency: Currency) => update((p) => ({ ...p, currency }));
 
-export const toggleFavorite = (slug: string) =>
-  update((p) => ({
-    ...p,
-    favorites: p.favorites.includes(slug) ? p.favorites.filter((s) => s !== slug) : [...p.favorites, slug],
-  }));
+/** Signed-in travelers also keep favorites on their account (SavedToursSync listens to this event). */
+export const FAVORITE_EVENT = "tunduk:favorite";
+
+export const toggleFavorite = (slug: string) => {
+  const saved = !getSnapshot().favorites.includes(slug);
+  update((p) => ({ ...p, favorites: saved ? [...p.favorites, slug] : p.favorites.filter((s) => s !== slug) }));
+  window.dispatchEvent(new CustomEvent(FAVORITE_EVENT, { detail: { slug, saved } }));
+};
+
+/** After signing in: the union of this browser's and the account's favorites. */
+export const mergeFavorites = (slugs: string[]) =>
+  update((p) => ({ ...p, favorites: [...new Set([...p.favorites, ...slugs])] }));
+
+export const currentFavorites = () => getSnapshot().favorites;

@@ -100,7 +100,7 @@ function FieldError({ message }: { message?: string }) {
 
 const inputClass = "h-11 w-full rounded-lg border border-line-strong bg-white px-3 text-ink aria-invalid:border-kyrgyz";
 
-export function BookingForm({ tour, initial }: { tour: BookingFormTour; initial: { departureId?: string; date?: string; adults: number; children: number } }) {
+export function BookingForm({ tour, initial }: { tour: BookingFormTour; initial: { departureId?: string; date?: string; adults: number; children: number; customerName?: string; email?: string } }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -125,8 +125,8 @@ export function BookingForm({ tour, initial }: { tour: BookingFormTour; initial:
       children: initial.children,
       travelers: [],
       specialRequests: "",
-      customerName: "",
-      email: "",
+      customerName: initial.customerName ?? "",
+      email: initial.email ?? "",
       whatsapp: "",
       country: "",
       terms: false,

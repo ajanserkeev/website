@@ -28,6 +28,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Traveler sign-in on the site (Socialite). Create an OAuth client "Web application" in Google Cloud with the
+    // redirect URI {FRONTEND_URL}/auth/google/callback; the site does the redirect, Laravel exchanges the code.
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/').'/auth/google/callback',
+    ],
+
+    // Local testing without Google: sign in as any traveler by email. Ignored unless APP_ENV=local.
+    'dev_login' => (bool) env('DEV_LOGIN', false),
+
     // Tour route builder (App\Services\Maps\RouteBuilder). The public OSRM servers (project-osrm.org for cars,
     // FOSSGIS routing.openstreetmap.de for walking) are meant for light use: fine for editors drawing routes,
     // never for traffic from the site. For heavy use run an own OSRM on the Geofabrik Kyrgyzstan extract.

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BookingForm } from "@/components/booking/booking-form";
 import { getTour } from "@/lib/catalog";
+import { getMe } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Request to book",
@@ -18,7 +19,7 @@ const toStr = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 /** Three steps, no account (launch document, item 17): dates & travelers → details → review & send. */
 export default async function BookPage(props: PageProps<"/tours/[slug]/book">) {
   const [{ slug }, query] = await Promise.all([props.params, props.searchParams]);
-  const tour = await getTour(slug);
+  const [tour, me] = await Promise.all([getTour(slug), getMe()]);
   if (!tour) notFound();
 
   return (
@@ -47,6 +48,9 @@ export default async function BookPage(props: PageProps<"/tours/[slug]/book">) {
           date: toStr(query.date),
           adults: Math.max(1, toInt(query.adults, 2)),
           children: toInt(query.children, 0),
+          // Signed-in travelers: the booking lands in their account, contact details prefilled.
+          customerName: me?.name,
+          email: me?.email,
         }}
       />
     </div>

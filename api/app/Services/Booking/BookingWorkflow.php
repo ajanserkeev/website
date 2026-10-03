@@ -35,13 +35,13 @@ final class BookingWorkflow
      *     email: string, whatsapp?: ?string, country?: ?string, special_requests?: ?string, travelers?: ?array, utm?: ?array}  $input
      * @return array{0: Booking, 1: string} the booking and the plain "My booking" token
      */
-    public function request(Tour $tour, array $input, ?string $ip = null): array
+    public function request(Tour $tour, array $input, ?string $ip = null, ?User $user = null): array
     {
         $children = (int) ($input['children'] ?? 0);
         $quote = $this->pricing->quote($tour, $input['departure_id'] ?? null, $input['date_from'] ?? null, (int) $input['adults'], $children);
         $token = Str::random(40);
 
-        $booking = DB::transaction(function () use ($tour, $input, $quote, $token, $ip) {
+        $booking = DB::transaction(function () use ($tour, $input, $quote, $token, $ip, $user) {
             $booking = new Booking([
                 'customer_name' => $input['customer_name'],
                 'email' => $input['email'],
@@ -57,6 +57,7 @@ final class BookingWorkflow
                 'status' => BookingStatus::New,
                 'tour_id' => $tour->id,
                 'operator_id' => $tour->operator_id,
+                'user_id' => $user?->id,
                 'terms_accepted_at' => now(),
                 'terms_version' => config('brand.terms_version'),
                 'terms_ip' => $ip,

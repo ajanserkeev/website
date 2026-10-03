@@ -1,5 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
+import { getSessionToken } from "./session";
 
 /** All catalog data is tagged; Laravel calls /api/revalidate after admin edits (plan, recommendation 13). */
 export const CATALOG_TAG = "catalog";
@@ -53,16 +54,19 @@ export async function apiGetPrivate<T>(path: string): Promise<T | null> {
 
 /**
  * Forwards a traveler's POST to Laravel from a route handler (BFF, plan recommendation 12),
- * passing the traveler's IP so the API rate limit counts people, not the Next.js server.
+ * passing the traveler's IP so the API rate limit counts people, not the Next.js server, and their session
+ * token so a booking made while signed in shows up in their account.
  */
 export async function proxyPost(path: string, request: Request): Promise<Response> {
   const forwardedFor = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "";
+  const token = await getSessionToken();
   const response = await fetch(`${API_URL}/api/v1/${path}`, {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
       ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: await request.text(),
     cache: "no-store",

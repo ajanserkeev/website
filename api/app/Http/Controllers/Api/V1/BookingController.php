@@ -37,7 +37,8 @@ class BookingController extends Controller
         ]);
 
         $tour = $this->catalog->query()->with('privatePrices')->where('slug', $data['tour'])->first() ?? abort(404);
-        [$booking, $token] = $this->workflow->request($tour, $data, $request->ip());
+        // Signed-in travelers (Sanctum token forwarded by the site) see the booking in their account.
+        [$booking, $token] = $this->workflow->request($tour, $data, $request->ip(), $request->user('sanctum'));
 
         return response()->json(['data' => ['code' => $booking->code, 'token' => $token, 'status' => $booking->status->value]], 201);
     }

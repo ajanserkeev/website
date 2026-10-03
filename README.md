@@ -23,7 +23,9 @@ docker compose -f infra/docker-compose.yml up
 | Адрес | Сервис |
 |---|---|
 | http://localhost:3000 | сайт (web) |
-| http://localhost:8000/admin | админка (api) |
+| http://localhost:8000/admin | админка (api), супер-админ и команда |
+| http://localhost:8000/partner | кабинет партнёра (турфирмы) |
+| http://localhost:3000/login | вход туриста (Google; локально ещё тестовый вход) |
 | http://localhost:8025 | Mailpit, входящие письма |
 | http://localhost:8000/api/v1/health | проверка API и базы |
 | `worker` | Horizon: фото в WebP, письма туристам, Telegram |
@@ -63,6 +65,27 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+
+## Роли
+
+| Роль | Где | Вход | Что видит |
+|---|---|---|---|
+| Супер-админ (`admin`) | `/admin` | email + пароль | всё; «Итоги площадки», пользователи, модерация отзывов |
+| Менеджер, контент | `/admin` | email + пароль | брони и каталог; пользователями не управляют |
+| Партнёр (`partner`) | `/partner` | email + пароль, выдаёт супер-админ | только свою фирму: итоги за период, график по месяцам, туры со статистикой, брони (только просмотр) |
+| Турист (`tourist`) | сайт, `/account` | Google | свои брони (и сделанные до входа с тем же email), сохранённые туры, отзыв после завершённого тура |
+
+Деньги у партнёра считаются по броням с оплаченной предоплатой: сумма тура, комиссия площадки (= предоплата,
+ставка из брони) и остаток фирме, который турист платит на месте (`api/app/Services/Partner/PartnerStats.php`).
+Контакты туриста партнёр видит только после предоплаты.
+
+Демо-аккаунты после `migrate:fresh --seed`: `admin@example.com` / `password`, `partner@example.com` / `password`
+(фирма Naryn Nomad Routes), турист `tourist@example.com` через «Sign in as a test traveler» на `/login`
+(у него завершённый тур Song-Kul, можно оставить отзыв). Брони за год выдуманы, чтобы дашборды были не пустыми.
+
+**Google:** в Google Cloud создать OAuth client «Web application», redirect URI `{FRONTEND_URL}/auth/google/callback`
+(локально `http://localhost:3000/auth/google/callback`), ключи в `api/.env`: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+Тестовый вход работает только при `APP_ENV=local` и `DEV_LOGIN=true`.
 
 ## Как работает бронь
 
